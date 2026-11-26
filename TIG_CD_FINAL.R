@@ -1,7 +1,6 @@
 # TIG Grupo 12 - Detección de transacciones con riesgo de fraude
 # Ciencia de Datos 
-#
-# Estructura del script (cada tabla y figura se guarda en "resultados/"):
+
 #   0. Configuración: paquetes, parámetros y lectura de datos
 #   A.1 Análisis exploratorio ............ Tablas 1-4, Figuras 1-2
 #   A.3 Preparación y predictores nuevos . Tablas 5a-5b
