@@ -39,9 +39,9 @@ dir.create("resultados", showWarnings = FALSE)
 datos <- readxl::read_excel("tig_grupo_12.xlsx")
 
 
-# =====================================================================
+
 # A.1 Análisis exploratorio (base completa, antes de transformar)
-# =====================================================================
+
 
 # Resumen general: en las columnas numéricas, "NA's" indica los vacíos
 summary(datos)
@@ -115,10 +115,9 @@ figura_2
 ggplot2::ggsave("resultados/figura_2_distancia.png", figura_2, width = 8, height = 5)
 
 
-# =====================================================================
 # A.3 Preparación de columnas y predictores nuevos
-# (fila a fila y con reglas fijas: va antes de la partición sin leakage)
-# =====================================================================
+
+
 
 datos <- dplyr::mutate(datos,
                        # Respuesta como factor: "Si" primero, porque es el evento que buscamos
@@ -152,9 +151,8 @@ tabla_5b
 readr::write_csv(tabla_5b, "resultados/tabla_5b_ratio_monto_saldo.csv")
 
 
-# =====================================================================
 # A.2 Partición 60 / 20 / 20 estratificada
-# =====================================================================
+
 
 set.seed(semilla)
 division <- rsample::initial_validation_split(
@@ -179,9 +177,8 @@ tabla_6
 readr::write_csv(tabla_6, "resultados/tabla_6_particion.csv")
 
 
-# =====================================================================
 # A.4 Receta (se prepara solo con entrenamiento al ajustar cada workflow)
-# =====================================================================
+
 
 receta <- recipes::recipe(
   fraude_confirmado ~ monto_pesos + hora_transaccion + transacciones_24h +
@@ -196,15 +193,15 @@ receta <- recipes::recipe(
   recipes::step_dummy(categoria_comercio, canal_compra, segmento_cliente)
 
 
-# =====================================================================
+
 # B. Modelos y selección (solo con validación)
-# =====================================================================
+
 # Métrica principal: precisión en el 12 % más riesgoso.
 # Con un número fijo de revisiones (k), el beneficio 12.600a - 3.000k solo
 # sube si sube a (fraudes encontrados). Más precisión = más beneficio.
 # Accuracy se descarta: con 17 % de fraude, decir siempre "No" acierta 83 %.
 
-# ---- B.1 Modelo 1: regresión logística (línea base, sin hiperparámetros) ----
+#  B.1 Modelo 1: regresión logística 
 modelo_logistico <-
   parsnip::logistic_reg() |>
   parsnip::set_engine("glm") |>
@@ -299,11 +296,10 @@ modelo_final <- modelo_logistico
 modelo_final
 
 
-# =====================================================================
 # C. Evaluación final (la prueba se usa una sola vez)
-# =====================================================================
 
-# ---- C.1 Ajuste del modelo final solo con entrenamiento ----
+
+#  C.1 Ajuste del modelo final solo con entrenamiento
 flujo_final <-
   workflows::workflow() |>
   workflows::add_recipe(receta) |>
@@ -312,7 +308,7 @@ flujo_final <-
 set.seed(semilla)
 ajuste_final <- parsnip::fit(flujo_final, data = entrenamiento)
 
-# ---- C.1 Predicción en prueba: probabilidad de fraude ----
+#  C.1 Predicción en prueba: probabilidad de fraude
 pred_prueba <-
   ajuste_final |>
   stats::predict(new_data = prueba, type = "prob") |>
@@ -332,7 +328,7 @@ pred_prueba <- pred_prueba |>
                                                   TRUE ~ "No"),
                                  levels = c("Si", "No")))
 
-# ---- C.2 Matriz de confusión ----
+# C.2 Matriz de confusión 
 matriz_prueba <- yardstick::conf_mat(pred_prueba, truth = fraude_confirmado, estimate = revisar)
 matriz_prueba
 
@@ -361,9 +357,9 @@ tasa_fraude_prueba <- mean(prueba$fraude_confirmado == "Si")
 tasa_fraude_prueba
 
 
-# =====================================================================
+
 # D. Decisión de negocio (transacciones de prueba)
-# =====================================================================
+
 
 # Ahorro por cada fraude revisado: 30 % de 42.000 = 12.600
 ahorro_fraude <- prop_evitada * perdida_fraude
